@@ -64,7 +64,7 @@ def get_items():
 
         result.append(element_data)
 
-    return result
+    return result[1:]
 
 
 def main():
