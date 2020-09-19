@@ -1,14 +1,30 @@
-#coding=utf-8
+# coding=utf-8
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.select import Select
+import xlsxwriter
 import time
 
-driver = webdriver.Chrome()
+options = Options()
+options.headless = True
+driver = webdriver.Chrome(chrome_options=options)
+
+
+workbook = xlsxwriter.Workbook('Results.xlsx')
+worksheet = workbook.add_worksheet()
+row = 0
+col = 0
+
+columns = ["Name", "Type", "URL", "Year", "Brand", "Model", "Submodel", "Akü Kodu",
+           "Volt (V)", "Kapasite", "CCA", "En", "Boy", "Yükseklik", "Alt Bağlantı Tipi", "Terminal Tipi"]
+
+for i in range(len(columns)):
+    worksheet.write(row, col, columns[i])
+    col += 1
+
+col = 0
+row += 1
 
 result = []
 
@@ -34,46 +50,49 @@ def selector(selection_type, selection_value, newly_loaded):
 
 
 def get_items(year_option, brand_option, model_option, submodel_option):
-    parent_element = driver.find_element_by_xpath(
-        "/html/body/section/div[4]/div")
-    element_list = parent_element.find_elements_by_tag_name("a")
+    print(year_option, brand_option, model_option, submodel_option)
+    try:
+        parent_element = driver.find_element_by_xpath(
+            "/html/body/section/div[4]/div")
+        element_list = parent_element.find_elements_by_tag_name("a")
 
-    for element in element_list:
-        element_data = {}
-        element_data["url"] = driver.current_url
-        element_data["year"] = year_option
-        element_data["brand"] = brand_option
-        element_data["model"] = model_option
-        element_data["submodel"] = submodel_option
+        for element in element_list:
+            element_data = {}
+            element_data["URL"] = driver.current_url
+            element_data["Year"] = year_option
+            element_data["Brand"] = brand_option
+            element_data["Model"] = model_option
+            element_data["Submodel"] = submodel_option
 
-        type_ = element.find_element_by_class_name("uk-text-bolder")
-        if type_.get_attribute("innerHTML").startswith("TAVS"):
-            type_ = "TAVSIYE EDILEN"
-        else:
-            type_ = type_.get_attribute("innerHTML")
-        element_data["type"] = type_
+            type_ = element.find_element_by_class_name("uk-text-bolder")
+            if type_.get_attribute("innerHTML").startswith("TAVS"):
+                type_ = "TAVSIYE EDILEN"
+            else:
+                type_ = type_.get_attribute("innerHTML")
+            element_data["Type"] = type_
 
-        name = element.find_element_by_class_name(
-            "uk-h3").get_attribute("innerHTML")
-        element_data["name"] = name
+            name = element.find_element_by_class_name(
+                "uk-h3").get_attribute("innerHTML")
+            element_data["Name"] = name
 
-        details = element.find_elements_by_tag_name("li")
-        for detail in details:
-            p_tags = detail.find_elements_by_tag_name("p")
-            raw_tags = []
-            for p_tag in p_tags:
-                text = p_tag.get_attribute("innerHTML")
-                if(text.startswith(":")):
-                    text = text[1:]
-                raw_tags.append(text.strip())
+            details = element.find_elements_by_tag_name("li")
+            for detail in details:
+                p_tags = detail.find_elements_by_tag_name("p")
+                raw_tags = []
+                for p_tag in p_tags:
+                    text = p_tag.get_attribute("innerHTML")
+                    if(text.startswith(":")):
+                        text = text[1:]
+                    raw_tags.append(text.strip())
 
-            for i in range(len(raw_tags)):
-                if i % 2 == 0:
-                    element_data[raw_tags[i]] = raw_tags[i+1]
+                for i in range(len(raw_tags)):
+                    if i % 2 == 0:
+                        element_data[raw_tags[i]] = raw_tags[i+1]
 
-        result.append(element_data)
+            result.append(element_data)
 
-    return result
+    except:
+        print("No items found")
 
 
 def reselection_after_submit_form(brand, model):
@@ -97,10 +116,11 @@ def main():
     _year_options = years.find_elements_by_tag_name("option")
 
     year_options = []
-    for year_option in _year_options[1:]:
+    for year_option in _year_options[3:]:
         year_options.append(year_option.text)
 
     for year_option in year_options:
+        print("YIL", year_option)
         _brand_options = selector("years", year_option, "brands")
 
         brand_options = []
@@ -108,6 +128,7 @@ def main():
             brand_options.append(brand_option.text)
 
         for brand_option in brand_options:
+            print("MARKA", brand_option)
             _model_options = selector("brands", brand_option, "model")
 
             model_options = []
@@ -115,6 +136,7 @@ def main():
                 model_options.append(model_option.text)
 
             for model_option in model_options:
+                print("MODEL", model_option)
                 _submodel_options = selector(
                     "model", model_option, "altModel")
 
@@ -123,6 +145,7 @@ def main():
                     submodel_options.append(submodel_option.text)
 
                 for submodel_option in submodel_options:
+                    print("ALTMODEL", submodel_option)
                     submodel_selector = Select(
                         driver.find_element_by_id("altModel"))
                     submodel_selector.select_by_value(
@@ -143,4 +166,5 @@ def main():
 
 main()
 
-# driver.close()
+driver.close()
+workbook.close()
