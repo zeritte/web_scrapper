@@ -8,6 +8,8 @@ import time
 
 driver = webdriver.Chrome()
 
+result = []
+
 
 def wait_for_dropdown(select):
     if len(select.find_elements_by_tag_name("option")) > 1:
@@ -29,20 +31,25 @@ def selector(selection_type, selection_value, newly_loaded):
     return options[1:]
 
 
-def get_items():
+def get_items(year_option, brand_option, model_option, submodel_option):
     parent_element = driver.find_element_by_xpath(
         "/html/body/section/div[4]/div")
     element_list = parent_element.find_elements_by_tag_name("a")
-    result = []
+
     for element in element_list:
         element_data = {}
+        element_data["url"] = driver.current_url
+        element_data["year"] = year_option
+        element_data["brand"] = brand_option
+        element_data["model"] = model_option
+        element_data["submodel"] = submodel_option
 
-        typeof = element.find_element_by_class_name("uk-text-bolder")
-        if typeof.get_attribute("innerHTML").startswith("TAVSİYE"):
-            typeof = "TAVSİYE EDİLEN"
+        type_ = element.find_element_by_class_name("uk-text-bolder")
+        if type_.get_attribute("innerHTML").startswith("TAVSİYE"):
+            type_ = "TAVSİYE EDİLEN"
         else:
-            typeof = typeof.get_attribute("innerHTML")
-        element_data["typeof"] = typeof
+            type_ = type_.get_attribute("innerHTML")
+        element_data["type"] = type_
 
         name = element.find_element_by_class_name(
             "uk-h3").get_attribute("innerHTML")
@@ -78,25 +85,45 @@ def main():
     year_options = years.find_elements_by_tag_name("option")
 
     for year_option in year_options:
-        if(year_option.text == "2018"):
+        the_year = year_option.text
+        if the_year == "2018":
             brand_options = selector("years", year_option, "brands")
             for brand_option in brand_options:
-                if(brand_option.text == "VOLKSWAGEN"):
+                the_brand = brand_option.text
+                if the_brand == "VOLKSWAGEN":
                     model_options = selector("brands", brand_option, "model")
                     for model_option in model_options:
-                        if model_option.text == "PASSAT (3G2)":
+                        the_model = model_option.text
+                        if the_model == "PASSAT (3G2)":
                             submodel_options = selector(
                                 "model", model_option, "altModel")
                             for submodel_option in submodel_options:
+                                the_submodel = submodel_option.text
                                 submodel_selector = Select(
                                     driver.find_element_by_id("altModel"))
-                                submodel_selector.select_by_value(
-                                    submodel_option.text)
+                                submodel_selector.select_by_value(the_submodel)
+
                                 find_button = driver.find_element_by_xpath(
                                     '//*[@id="find-battery"]/div[2]/button')
                                 find_button.click()
-                                data = get_items()
-                                print(data)
+
+                                get_items(
+                                    the_year, the_brand, the_model, the_submodel)
+
+                                wait_for_dropdown(
+                                    driver.find_element_by_id("brands"))
+                                Select(driver.find_element_by_id("brands")).select_by_value(
+                                    the_brand)
+
+                                wait_for_dropdown(
+                                    driver.find_element_by_id("model"))
+                                Select(driver.find_element_by_id("brands")).select_by_value(
+                                    the_model)
+
+                                wait_for_dropdown("altModel")
+
+                                print(result)
+                                print("=====")
 
 
 main()
