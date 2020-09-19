@@ -1,3 +1,5 @@
+#coding=utf-8
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -45,8 +47,8 @@ def get_items(year_option, brand_option, model_option, submodel_option):
         element_data["submodel"] = submodel_option
 
         type_ = element.find_element_by_class_name("uk-text-bolder")
-        if type_.get_attribute("innerHTML").startswith("TAVSİYE"):
-            type_ = "TAVSİYE EDİLEN"
+        if type_.get_attribute("innerHTML").startswith("TAVS"):
+            type_ = "TAVSIYE EDILEN"
         else:
             type_ = type_.get_attribute("innerHTML")
         element_data["type"] = type_
@@ -95,7 +97,7 @@ def main():
     _year_options = years.find_elements_by_tag_name("option")
 
     year_options = []
-    for year_option in _year_options:
+    for year_option in _year_options[1:]:
         year_options.append(year_option.text)
 
     for year_option in year_options:
