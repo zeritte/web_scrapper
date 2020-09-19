@@ -7,11 +7,23 @@ import time
 
 driver = webdriver.Chrome()
 
-driver.get("https://www.inciaku.com/tr/akunu-bul/otomobil-hafif-ticari")
 
-years = driver.find_element_by_id("years")
+def wait_for_years(years):
+    if len(years.find_elements_by_tag_name('option')) > 1:
+        return
+    else:
+        time.sleep(1)
+        wait_for_years(years)
 
-time.sleep(10)
-print(len(years.find_elements_by_tag_name('option')))
-# for option in years.find_elements_by_tag_name('option'):
-#     print(option.text)
+def main():
+    driver.get("https://www.inciaku.com/tr/akunu-bul/otomobil-hafif-ticari")
+
+    years=driver.find_element_by_id("years")
+
+    wait_for_years(years)
+    print(len(years.find_elements_by_tag_name('option')))
+    # for option in years.find_elements_by_tag_name('option'):
+    #     print(option.text)
+
+
+main()
