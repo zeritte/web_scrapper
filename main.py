@@ -15,8 +15,8 @@ driver = webdriver.Chrome(options=options)
 wb = Workbook()
 ws = wb.active
 
-columns = ["Name", "Type", "URL", "Year", "Brand", "Model", "Submodel", "Akü Kodu",
-           "Volt (V)", "Kapasite", "CCA", "En", "Boy", "Yükseklik", "Alt Bağlantı Tipi", "Terminal Tipi"]
+columns = ["Name", "Recommended", "Type", "Year", "Brand", "Model", "Submodel", "Akü Kodu",
+           "Volt (V)", "Kapasite", "CCA", "En", "Boy", "Yükseklik", "Alt Bağlantı Tipi", "Terminal Tipi", "URL"]
 
 ws.append(columns)
 wb.save("Results.xlsx")
@@ -67,14 +67,21 @@ def get_items(year_option, brand_option, model_option, submodel_option):
                 "uk-h3").get_attribute("innerHTML")
             element_data["Name"] = name
 
-            type_ = element.find_element_by_class_name("uk-text-bolder")
-            if type_.get_attribute("innerHTML").startswith("TAVS"):
-                type_ = "TAVSIYE EDILEN"
+            recommended = element.find_element_by_class_name("uk-text-bolder")
+            if recommended.get_attribute("innerHTML").startswith("TAVS"):
+                recommended = "TAVSIYE EDILEN"
             else:
-                type_ = type_.get_attribute("innerHTML")
-            element_data["Type"] = type_
+                recommended = recommended.get_attribute("innerHTML")
+            element_data["Recommended"] = recommended
 
-            element_data["URL"] = driver.current_url
+            type_of = element.find_element_by_class_name(
+                "uk-text-small").get_attribute("innerHTML")
+            element_data["Type"] = type_of
+
+            print("******")
+            print(type_of)
+            print("******")
+
             element_data["Year"] = year_option
             element_data["Brand"] = brand_option
             element_data["Model"] = model_option
@@ -94,6 +101,7 @@ def get_items(year_option, brand_option, model_option, submodel_option):
                     if i % 2 == 0:
                         element_data[raw_tags[i]] = raw_tags[i+1]
 
+            element_data["URL"] = driver.current_url
             load_to_excel(element_data)
             result.append(element_data)
 
