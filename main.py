@@ -26,7 +26,7 @@ def selector(selection_type, selection_value, newly_loaded):
     wait_for_dropdown(loaded_items)
     options = loaded_items.find_elements_by_tag_name("option")
 
-    return options
+    return options[1:]
 
 
 def get_items():
@@ -64,7 +64,7 @@ def get_items():
 
         result.append(element_data)
 
-    return result[1:]
+    return result
 
 
 def main():
