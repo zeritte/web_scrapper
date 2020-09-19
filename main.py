@@ -30,8 +30,41 @@ def selector(selection_type, selection_value, newly_loaded):
 
 
 def get_items():
-    items = driver.find_element_by_xpath("/html/body/section/div[4]/div")
-    print(items.get_attribute("innerHTML"))
+    parent_element = driver.find_element_by_xpath(
+        "/html/body/section/div[4]/div")
+    element_list = parent_element.find_elements_by_tag_name("a")
+    result = []
+    for element in element_list:
+        element_data = {}
+
+        typeof = element.find_element_by_class_name("uk-text-bolder")
+        if typeof.get_attribute("innerHTML").startswith("TAVSİYE"):
+            typeof = "TAVSİYE EDİLEN"
+        else:
+            typeof = typeof.get_attribute("innerHTML")
+        element_data["typeof"] = typeof
+
+        name = element.find_element_by_class_name(
+            "uk-h3").get_attribute("innerHTML")
+        element_data["name"] = name
+
+        details = element.find_elements_by_tag_name("li")
+        for detail in details:
+            p_tags = detail.find_elements_by_tag_name("p")
+            raw_tags = []
+            for p_tag in p_tags:
+                text = p_tag.get_attribute("innerHTML")
+                if(text.startswith(":")):
+                    text = text[1:]
+                raw_tags.append(text.strip())
+
+            for i in range(len(raw_tags)):
+                if i % 2 == 0:
+                    element_data[raw_tags[i]] = raw_tags[i+1]
+
+        result.append(element_data)
+
+    return result
 
 
 def main():
@@ -55,15 +88,15 @@ def main():
                             submodel_options = selector(
                                 "model", model_option, "altModel")
                             for submodel_option in submodel_options:
-                                if submodel_option.text == "1.4 GTE Hybrid (115 kW / 156 PS)":
-                                    submodel_selector = Select(
-                                        driver.find_element_by_id("altModel"))
-                                    submodel_selector.select_by_value(
-                                        submodel_option.text)
-                                    find_button = driver.find_element_by_xpath(
-                                        '//*[@id="find-battery"]/div[2]/button')
-                                    find_button.click()
-                                    get_items()
+                                submodel_selector = Select(
+                                    driver.find_element_by_id("altModel"))
+                                submodel_selector.select_by_value(
+                                    submodel_option.text)
+                                find_button = driver.find_element_by_xpath(
+                                    '//*[@id="find-battery"]/div[2]/button')
+                                find_button.click()
+                                data = get_items()
+                                print(data)
 
 
 main()
