@@ -78,10 +78,6 @@ def get_items(year_option, brand_option, model_option, submodel_option):
                 "uk-text-small").get_attribute("innerHTML")
             element_data["Type"] = type_of
 
-            print("******")
-            print(type_of)
-            print("******")
-
             element_data["Year"] = year_option
             element_data["Brand"] = brand_option
             element_data["Model"] = model_option
