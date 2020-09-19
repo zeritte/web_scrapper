@@ -1,32 +1,36 @@
 # coding=utf-8
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.select import Select
-import xlsxwriter
 import time
+from openpyxl import Workbook
+from selenium.webdriver.support.select import Select
+from selenium.webdriver.chrome.options import Options
+from selenium import webdriver
+
 
 options = Options()
 options.headless = True
-driver = webdriver.Chrome(chrome_options=options)
+driver = webdriver.Chrome(options=options)
 
 
-workbook = xlsxwriter.Workbook('Results.xlsx')
-worksheet = workbook.add_worksheet()
-row = 0
-col = 0
+wb = Workbook()
+ws = wb.active
 
 columns = ["Name", "Type", "URL", "Year", "Brand", "Model", "Submodel", "Akü Kodu",
            "Volt (V)", "Kapasite", "CCA", "En", "Boy", "Yükseklik", "Alt Bağlantı Tipi", "Terminal Tipi"]
 
-for i in range(len(columns)):
-    worksheet.write(row, col, columns[i])
-    col += 1
+ws.append(columns)
+wb.save("Results.xlsx")
 
-col = 0
-row += 1
 
 result = []
+
+
+def load_to_excel(that_row):
+    arr = []
+    for key, value in that_row.items():
+        arr.append(value)
+    ws.append(arr)
+    wb.save("Results.xlsx")
 
 
 def wait_for_dropdown(select):
@@ -58,11 +62,10 @@ def get_items(year_option, brand_option, model_option, submodel_option):
 
         for element in element_list:
             element_data = {}
-            element_data["URL"] = driver.current_url
-            element_data["Year"] = year_option
-            element_data["Brand"] = brand_option
-            element_data["Model"] = model_option
-            element_data["Submodel"] = submodel_option
+
+            name = element.find_element_by_class_name(
+                "uk-h3").get_attribute("innerHTML")
+            element_data["Name"] = name
 
             type_ = element.find_element_by_class_name("uk-text-bolder")
             if type_.get_attribute("innerHTML").startswith("TAVS"):
@@ -71,9 +74,11 @@ def get_items(year_option, brand_option, model_option, submodel_option):
                 type_ = type_.get_attribute("innerHTML")
             element_data["Type"] = type_
 
-            name = element.find_element_by_class_name(
-                "uk-h3").get_attribute("innerHTML")
-            element_data["Name"] = name
+            element_data["URL"] = driver.current_url
+            element_data["Year"] = year_option
+            element_data["Brand"] = brand_option
+            element_data["Model"] = model_option
+            element_data["Submodel"] = submodel_option
 
             details = element.find_elements_by_tag_name("li")
             for detail in details:
@@ -89,10 +94,11 @@ def get_items(year_option, brand_option, model_option, submodel_option):
                     if i % 2 == 0:
                         element_data[raw_tags[i]] = raw_tags[i+1]
 
+            load_to_excel(element_data)
             result.append(element_data)
 
-    except:
-        print("No items found")
+    except Exception as e:
+        print(str(e))
 
 
 def reselection_after_submit_form(brand, model):
@@ -116,7 +122,7 @@ def main():
     _year_options = years.find_elements_by_tag_name("option")
 
     year_options = []
-    for year_option in _year_options[3:]:
+    for year_option in _year_options[1:]:
         year_options.append(year_option.text)
 
     for year_option in year_options:
@@ -167,4 +173,3 @@ def main():
 main()
 
 driver.close()
-workbook.close()
