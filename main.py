@@ -121,6 +121,12 @@ def main():
         for brand_option in _brand_options:
             brand_options.append(brand_option.text)
 
+        # remove
+        print(">>>>>>>>>>")
+        print(brand_options)
+        print("<<<<<<<<<<")
+        # remove
+
         for brand_option in brand_options:
             print("MARKA", brand_option)
             _model_options = selector("brands", brand_option, "model")
