@@ -1,6 +1,5 @@
 # coding=utf-8
 
-
 import time
 from openpyxl import Workbook, load_workbook
 from selenium.webdriver.support.select import Select
@@ -58,7 +57,7 @@ def get_items(year_option, brand_option, model_option, submodel_option):
             element_data["Name"] = name
 
             recommended = element.find_element_by_class_name("uk-text-bolder")
-            if recommended.get_attribute("innerHTML").startswith("TAVS"):
+            if recommended.get_attribute("innerHTML").lower().startswith("tavs"):
                 recommended = "TAVSIYE EDILEN"
             else:
                 recommended = recommended.get_attribute("innerHTML")
@@ -164,6 +163,11 @@ def main():
                     print("=====")
 
 
-main()
-
-driver.close()
+try:
+    main()
+    driver.close()
+    wb.close()
+except KeyboardInterrupt:
+    print('Interrupted')
+    wb.close()
+    driver.close()
