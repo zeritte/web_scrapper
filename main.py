@@ -163,5 +163,6 @@ try:
     wb.close()
 except KeyboardInterrupt:
     print('Interrupted')
+    wb.save("Results_New_Backup.xlsx")
     wb.close()
     driver.close()
