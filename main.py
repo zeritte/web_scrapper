@@ -6,10 +6,12 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.chrome.options import Options
 from selenium import webdriver
 
+URL = "https://www.inciaku.com/tr/akunu-bul/otomobil-hafif-ticari"
 
 options = Options()
 options.headless = True
 driver = webdriver.Chrome(options=options)
+website_checker_driver = webdriver.Chrome(options=options)
 
 
 wb = load_workbook(filename='Results_Existing.xlsx')
@@ -23,6 +25,7 @@ def save_to_excel(that_row):
 
 
 def wait_for_dropdown(select):
+    wait_for_webpage()
     if len(select.find_elements_by_tag_name("option")) > 1:
         return
     else:
@@ -94,6 +97,7 @@ def get_items(year_option, brand_option, model_option, submodel_option):
 
 
 def reselection_after_submit_form(brand, model):
+    wait_for_webpage()
     wait_for_dropdown(driver.find_element_by_id("brands"))
     Select(driver.find_element_by_id("brands")).select_by_value(brand)
 
@@ -101,6 +105,15 @@ def reselection_after_submit_form(brand, model):
     Select(driver.find_element_by_id("model")).select_by_value(model)
 
     wait_for_dropdown(driver.find_element_by_id("altModel"))
+
+
+def wait_for_webpage(url=URL):
+    try:
+        website_checker_driver.get(url)
+    except:
+        print("webpage is down. waiting it to restore")
+        time.sleep(60)
+        wait_for_webpage(url)
 
 
 def main():
@@ -111,7 +124,8 @@ def main():
     for year_option in year_options:
         print("YIL", year_option)
 
-        driver.get("https://www.inciaku.com/tr/akunu-bul/otomobil-hafif-ticari")
+        wait_for_webpage()
+        driver.get(URL)
         wait_for_dropdown(driver.find_element_by_id("years"))
 
         _brand_options = selector("years", year_option, "brands")
@@ -122,6 +136,14 @@ def main():
 
         for brand_option in brand_options:
             print("MARKA", brand_option)
+
+            # for 2019 since data is interrupted
+            if brand_option in ['ALFA ROMEO', 'ASTON MARTIN', 'AUDI', 'BENTLEY', 'BMW', 'BUGATTI', 'CHERY', 'CHEVROLET', 'CHRYSLER', 'CITROËN', 'DACIA', 'DAEWOO', 'DAIHATSU', 'DODGE', 'DS', 'FERRARI', 'FIAT', 'FORD', 'HONDA', 'HUMMER', 'HYUNDAI', 'INFINITI', 'ISUZU', 'IVECO', 'JAGUAR', 'JEEP', 'KIA', 'LADA', 'LAMBORGHINI', 'LANCIA', 'LAND ROVER', 'LEXUS', 'MAN'] and year_option == "2019":
+                continue
+            # for 2018 since data is interrupted
+            if brand_option in ['ALFA ROMEO', 'ASTON MARTIN', 'AUDI', 'BENTLEY', 'BMW', 'BUGATTI', 'BUICK', 'CHERY', 'CHEVROLET', 'CHRYSLER', 'CITROËN', 'DACIA', 'DAEWOO', 'DAIHATSU', 'DODGE', 'DS', 'FERRARI', 'FIAT', 'FORD', 'HONDA', 'HUMMER', 'HYUNDAI', 'INFINITI', 'ISUZU', 'IVECO', 'JAGUAR', 'JEEP', 'KIA', 'LADA', 'LAMBORGHINI', 'LANCIA', 'LAND ROVER', 'LEXUS', 'MAN', 'MASERATI'] and year_option == "2018":
+                continue
+
             _model_options = selector("brands", brand_option, "model")
 
             model_options = []
@@ -139,11 +161,12 @@ def main():
 
                 for submodel_option in submodel_options:
                     print("ALTMODEL", submodel_option)
+                    wait_for_webpage()
                     submodel_selector = Select(
                         driver.find_element_by_id("altModel"))
                     submodel_selector.select_by_value(
                         submodel_option)
-
+    
                     find_button = driver.find_element_by_xpath(
                         '//*[@id="find-battery"]/div[2]/button')
                     find_button.click()
@@ -153,7 +176,6 @@ def main():
 
                     reselection_after_submit_form(
                         brand_option, model_option)
-
                     print("=====")
 
 
